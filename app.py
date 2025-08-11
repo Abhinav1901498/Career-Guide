@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import requests  # for backend only
-import plotly.express as px
 import pandas as pd
 
 # Placeholder function to simulate LLM responses
@@ -62,9 +61,8 @@ def login_page():
         if username == "user" and password == "pass123":
             st.session_state.logged_in = True
             st.success("Logged in successfully!")
-            
         else:
-            st.error("Invalid username or password. Try username: 'Abhinav', password: 'abhi123'.")
+            st.error("Invalid username or password. Please try again.")
 
 # Main app
 def main_app():
@@ -130,7 +128,7 @@ def main_app():
                         st.subheader("Some great career options for you could be:")
                         st.write(career_options)
 
-                        # Parse career options for graph
+                        # Parse career options for display
                         careers = []
                         descriptions = []
                         for line in career_options.strip().split('\n'):
@@ -139,36 +137,12 @@ def main_app():
                                 careers.append(career.strip().replace('- ', ''))
                                 descriptions.append(desc.strip())
 
-                        # Mock suitability scores for visualization
-                        scores = [0.95, 0.85, 0.80, 0.75, 0.70]  # Example scores
-                        df = pd.DataFrame({
-                            "Career": careers,
-                            "Suitability Score": scores,
-                            "Description": descriptions
-                        })
-
-                        # Create interactive bar chart
-                        fig = px.bar(
-                            df,
-                            x="Career",
-                            y="Suitability Score",
-                            hover_data=["Description"],
-                            title="Career Suitability Scores",
-                            labels={"Suitability Score": "Suitability (0-1)"},
-                            color="Career",
-                            text="Suitability Score"
-                        )
-                        fig.update_traces(texttemplate='%{text:.2f}', textposition='auto')
-                        fig.update_layout(showlegend=False, yaxis_range=[0, 1])
-                        st.plotly_chart(fig)
-
                         # Allow user to select a career
                         st.subheader("Choose a Career to Explore")
                         selected_career = st.selectbox("Select a career:", careers)
                         if selected_career:
-                            selected_desc = df[df["Career"] == selected_career]["Description"].iloc[0]
+                            selected_desc = descriptions[careers.index(selected_career)]
                             st.write(f"**{selected_career}**: {selected_desc}")
-                            st.write(f"Suitability Score: {df[df['Career'] == selected_career]['Suitability Score'].iloc[0]:.2f}")
 
                         # Append career advice to the conversation history
                         st.session_state.conversation.append(f"Student: {goals}")
@@ -184,20 +158,20 @@ def main_app():
     # Display conversation history
     st.header("Conversation History")
     for message in st.session_state.conversation:
-        st.write(message)
+        st.markdown(f"**{message}**")
 
     # Button to clear the conversation history
     if st.button("Clear Conversation"):
         st.session_state.conversation = []
         st.session_state.questions = None
-        st.experimental_rerun()
+        st.rerun()
 
     # Logout button
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.session_state.conversation = []
         st.session_state.questions = None
-        st.experimental_rerun()
+        st.rerun()
 
 # Render login page or main app based on login state
 if not st.session_state.logged_in:
